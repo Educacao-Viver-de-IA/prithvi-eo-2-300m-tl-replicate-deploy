@@ -140,11 +140,11 @@ class Predictor(BasePredictor):
         tensor = self._load_image_as_6band(image, image_size).to(device, dtype=torch.float32)
         print(f"[predict] input shape: {tensor.shape}", flush=True)
 
-        # Temporal/location metadata pro modelo TL.
-        # terratorch espera tensors 3D: [batch, time_steps, 2] (year+day) e [batch, num_locations, 2] (lat+lon).
-        # Indexa internamente como temporal_coords[:, :, 0], então 2D quebra com IndexError.
+        # Temporal coords: 3D [batch, time_steps, 2] — terratorch indexa temporal_coords[:, :, 0]
+        # Location coords: 2D [batch, 2] — terratorch indexa location_coords[:, 1]
+        # (descobertos por tentativa/erro — o shape difere entre os dois apesar de parecidos)
         temporal = torch.tensor([[[year, day_of_year]]], dtype=torch.float32, device=device)  # [1, 1, 2]
-        location = torch.tensor([[[latitude, longitude]]], dtype=torch.float32, device=device)  # [1, 1, 2]
+        location = torch.tensor([[latitude, longitude]], dtype=torch.float32, device=device)  # [1, 2]
 
         with torch.no_grad():
             # Tentativa 1: passa kwargs temporal/location
